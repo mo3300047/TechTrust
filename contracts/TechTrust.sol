@@ -11,6 +11,7 @@ contract TechTrust {
         uint256 points;  // 用户的积分数量
         bool isRegistered;  // 用户是否注册
         mapping(uint256 => uint256) pledgedPoints; // 记录每个产品的质押积分
+        uint256[] reviewedProductIds;  // 用户已经评论过的产品ID列表
     }
 
     // 公司账户结构体
@@ -38,14 +39,14 @@ contract TechTrust {
     }
 
     // 定义映射，记录每个地址（用户/公司）的账户信息
-    mapping(address => User) public users;
-    mapping(address => Company) public companies;
+    mapping(address => User) private users;
+    mapping(address => Company) private companies;
 
     // 定义映射，记录每个产品的详细信息
-    mapping(uint256 => Product) public products;
+    mapping(uint256 => Product) private products;
 
     // 定义映射，记录每个产品的所有评论
-    mapping(uint256 => Review[]) public productReviews;
+    mapping(uint256 => Review[]) private productReviews;
 
     // 当前产品的数量（自动递增）
     uint256 public productCount;
@@ -59,7 +60,11 @@ contract TechTrust {
     event ReviewSubmitted(address reviewer, uint256 productId, uint8 rating);
     event AdPosted(address company, uint256 points, uint256 duration);
     event PointsRefunded(address user, uint256 productId, uint256 points);
-    
+    event ReviewsListed(uint256 productId, Review[] reviews);
+    event AccountInfo(address user, uint256 points, uint256[] reviewedProductIds);
+    event PointsPurchased(address indexed user, uint256 points, uint256 ethSpent);
+
+
     // 修饰符：限制只有合约拥有者可以调用的函数
     modifier onlyOwner() {
         require(msg.sender == owner, "Only owner can call this");
@@ -98,11 +103,27 @@ contract TechTrust {
     }
 
     // 用户购买积分
-    function buyPoints() public payable {
-        require(msg.value > 0, "You must send ETH to buy points");
-        uint256 pointsBought = msg.value * 10; // 每ETH兑换10积分
-        users[msg.sender].points += pointsBought;
+    function buyPoints(uint256 pointsToBuy) public payable onlyUser {
+        require(pointsToBuy > 0, "You must specify a positive number of points to buy");
+
+        // 计算所需的 ETH（每10积分对应1ETH）
+        uint256 requiredETH = pointsToBuy * 1 ether / 10;
+
+        // 检查用户发送的 ETH 是否足够
+        require(msg.value >= requiredETH, "Not enough ETH sent");
+
+        // 更新用户的积分
+        users[msg.sender].points += pointsToBuy;
+
+        // 如果多发送了 ETH，退还多余的部分
+        uint256 excessETH = msg.value - requiredETH;
+        if (excessETH > 0) {
+            payable(msg.sender).transfer(excessETH); // 退还多余的ETH
+        }
+
+        emit PointsPurchased(msg.sender, pointsToBuy, requiredETH);  // 触发事件通知前端
     }
+
 
     // 添加新产品（只有公司账户可以添加产品）
     function addProduct(string memory name, uint256 price, uint256 stock, bool isBetaTest) public onlyCompany {
@@ -137,6 +158,7 @@ contract TechTrust {
         product.totalRating += rating;  // 增加评分数
 
         productReviews[productId].push(Review(productId, msg.sender, rating, comment));
+        users[msg.sender].reviewedProductIds.push(productId);  // 保存已评论的产品ID
         
         // 如果是内测版，退还质押积分
         if (product.isBetaTest) {
@@ -175,11 +197,29 @@ contract TechTrust {
         require(users[msg.sender].points >= 1, "You need at least 1 point to view reviews");
         users[msg.sender].points -= 1;  // 扣除查看评论的积分
 
-        // 获取并返回评论的数量（也可以返回评论内容）
-        uint256 reviewCount = productReviews[productId].length;
-        require(reviewCount > 0, "No reviews for this product");
+        // 获取所有评论
+        Review[] memory reviews = productReviews[productId];
+        require(reviews.length > 0, "No reviews for this product");
 
-        // 这里可以返回评论内容或其他详细信息，具体实现可以按需求调整
+        // 通过事件返回评论信息
+        emit ReviewsListed(productId, reviews);
+    }
+
+    // 列举所有产品信息
+    function listAllProducts() public view returns (Product[] memory) {
+        Product[] memory allProducts = new Product[](productCount);
+        for (uint256 i = 1; i <= productCount; i++) {
+            allProducts[i - 1] = products[i];
+        }
+        return allProducts;
+    }
+
+    // 查看自己的账户信息（积分余额、评论情况）
+    function viewAccountInfo() public onlyUser view returns (uint256, uint256[] memory){
+        User storage user = users[msg.sender];
+        // emit AccountInfo(msg.sender, user.points, user.reviewedProductIds);
+        // 返回积分余额和已评论的产品ID数组
+        return (user.points, user.reviewedProductIds);
     }
 
     // 公司投放广告
@@ -197,5 +237,4 @@ contract TechTrust {
 
     // 接收ETH（当用户购买积分时，合约会收到ETH）
     receive() external payable {}
-
 }
