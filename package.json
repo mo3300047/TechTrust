@@ -18,13 +18,13 @@
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "@openzeppelin/contracts": "^5.1.0",
     "@types/chai": "^5.0.1",
+    "bootstrap": "^5.3.3",
     "chai": "4.4.1",
     "dayjs": "^1.11.13",
     "dotenv": "^16.4.5",
     "ethers": "^6.13.4",
     "hardhat": "^2.22.16",
+    "react-bootstrap": "^2.10.6",
     "solidity-coverage": "^0.8.14"
   }
 }
-
-
