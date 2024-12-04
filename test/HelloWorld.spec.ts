@@ -19,3 +19,22 @@ describe("HelloWorld", function () {
     expect(result).to.equal("Hello, World!");
   });
 });
+
+/* describe("TechToken", function () {
+  async function deployTechTokenFixture() {
+    const [owner, addr1, addr2] = await hre.ethers.getSigners();
+    const TechToken = await hre.ethers.getContractFactory("TechToken");
+    const techToken = await TechToken.deploy(1000); // Initial supply: 1000 tokens
+
+    return { techToken, owner, addr1, addr2 };
+  }
+
+  it("Should deploy with correct initial supply", async function () {
+    const { techToken, owner } = await loadFixture(deployTechTokenFixture);
+    const totalSupply = await techToken.totalSupply();
+    const ownerBalance = await techToken.balanceOf(owner.address);
+
+    expect(totalSupply).to.equal(ownerBalance);
+    expect(totalSupply).to.equal(1000n * 10n ** 18n); // 1000 tokens with 18 decimals
+  });
+}); */
