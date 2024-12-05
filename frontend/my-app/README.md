@@ -1,9 +1,9 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Demo Pictures
-Picture 1: ![Picture 1](frontend/my-app/demo-pic/blockchain-pic1.jpg)
-Picture 2: ![Picture 2](frontend/my-app/demo-pic/blockchain-pic2.jpg)
-Picture 3: ![Picture 3](frontend/my-app/demo-pic/blockchain-pic3.jpg)
+Picture 1: ![Picture 1](./demo-pic/blockchain-pic1.jpg)
+Picture 2: ![Picture 2](./demo-pic/blockchain-pic2.jpg)
+Picture 3: ![Picture 3](./demo-pic/blockchain-pic3.jpg)
 
 ## Getting Started
 
