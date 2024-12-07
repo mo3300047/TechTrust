@@ -3,10 +3,10 @@ pragma solidity ^0.8.0;
 
 contract TechTrust {
 
-    // 定义合约拥有者（部署者）
+   
     address public owner;
 
-    // 用户账户结构体
+   
     struct User {
         uint256 points;  // 用户的积分数量
         bool isRegistered;  // 用户是否注册
@@ -100,6 +100,49 @@ contract TechTrust {
         require(!companies[msg.sender].isRegistered, "Company already registered");
         companies[msg.sender].points = 3000;  // 公司注册时赠送3000积分
         companies[msg.sender].isRegistered = true;
+    }
+    function getUserInfo(address userAddress)
+        public
+        view
+        returns (uint256 points, bool isRegistered, uint256[] memory reviewedProductIds)
+    {
+        User storage user = users[userAddress];
+        return (user.points, user.isRegistered, user.reviewedProductIds);
+    }
+
+        // 获取用户的 pledgedPoints
+    function getPledgedPoints(address userAddress, uint256 productId) public view returns (uint256) {
+        User storage user = users[userAddress];
+        return user.pledgedPoints[productId];
+    }
+
+    // 获取公司信息
+    function getCompanyInfo(address companyAddress) public view returns (uint256 points, bool isRegistered) {
+        Company storage company = companies[companyAddress];
+        return (company.points, company.isRegistered);
+    }
+
+    function getProduct(uint256 productId)
+        public
+        view
+        returns (
+            string memory name,
+            uint256 price,
+            uint256 stock,
+            uint256 totalReviews,
+            uint256 totalRating,
+            bool isBetaTest
+        )
+    {
+        Product storage product = products[productId];
+        return (
+            product.name,
+            product.price,
+            product.stock,
+            product.totalReviews,
+            product.totalRating,
+            product.isBetaTest
+        );
     }
 
     // 用户购买积分
